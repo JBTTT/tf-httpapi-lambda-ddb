@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INVOKE_URL=https://xxxxxxx.amazonaws.com
+INVOKE_URL=https://hx5k4co6r3.execute-api.us-east-1.amazonaws.com
 
 # add movies
 echo "> add movies"
