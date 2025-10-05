@@ -2,7 +2,7 @@
 # CloudWatch Log Group (for Lambda)
 # ------------------------------
 resource "aws_cloudwatch_log_group" "lambda_log_group" {
-  name              = "/aws/lambda/my-lambda-function"
+  name              = "/aws/lambda/${aws_lambda_function.http_api_lambda.function_name}"
   retention_in_days = 14
 }
 
@@ -10,22 +10,24 @@ resource "aws_cloudwatch_log_group" "lambda_log_group" {
 # Metric Filter for 'ERROR' logs
 # ------------------------------
 resource "aws_cloudwatch_log_metric_filter" "error_metric_filter" {
-  name           = "jibin-LambdaErrorCount"
+  name           = "${local.name_prefix}-lambda-error-filter"
   log_group_name = aws_cloudwatch_log_group.lambda_log_group.name
   pattern        = "ERROR"
 
   metric_transformation {
-    name      = "jibin-LambdaErrorCount"
-    namespace = "MyLambdaMetrics"
+    name      = "${local.name_prefix}-LambdaErrorCount"
+    namespace = "${local.name_prefix}-LambdaMetrics"
     value     = "1"
   }
 }
+
+
 
 # ------------------------------
 # CloudWatch Alarm for the Metric
 # ------------------------------
 resource "aws_cloudwatch_metric_alarm" "lambda_error_alarm" {
-  alarm_name          = "jibin-LambdaErrorAlarm"
+  alarm_name          = "${local.name_prefix}-LambdaErrorAlarm"
   alarm_description   = "Alarm when Lambda logs contain 'ERROR'"
   namespace           = aws_cloudwatch_log_metric_filter.error_metric_filter.metric_transformation[0].namespace
   metric_name         = aws_cloudwatch_log_metric_filter.error_metric_filter.metric_transformation[0].name
@@ -43,7 +45,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_error_alarm" {
 # SNS Topic for Alarm Notifications
 # ------------------------------
 resource "aws_sns_topic" "lambda_alarm_topic" {
-  name = "jibin-error-alarm-topic"
+  name = "${local.name_prefix}-error-alarm-topic"
 }
 
 # Optional: Email subscription for notifications
