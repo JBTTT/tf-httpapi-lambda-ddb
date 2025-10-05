@@ -53,11 +53,11 @@ resource "aws_cloudwatch_metric_alarm" "lambda_error_alarm" {
   statistic           = "Sum"
   treat_missing_data  = "notBreaching"
 
-  alarm_actions = [aws_sns_topic.lambda_alarm_topic.arn]
+  alarm_actions = [aws_sns_topic.lambda_error_alarm_topic.arn]
 }
 
 resource "aws_cloudwatch_metric_alarm" "lambda_info_alarm" {
-  alarm_name          = "${local.name_prefix}-LambdaInfoAlarm"
+  alarm_name          = "${local.name_prefix}-info-count-breach"
   alarm_description   = "Alarm when Lambda logs contain '[INFO]'"
   namespace           = aws_cloudwatch_log_metric_filter.info_metric_filter.metric_transformation[0].namespace
   metric_name         = aws_cloudwatch_log_metric_filter.info_metric_filter.metric_transformation[0].name
@@ -69,7 +69,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_info_alarm" {
   statistic           = "Sum"
   treat_missing_data  = "notBreaching"
 
-  alarm_actions = [aws_sns_topic.lambda_alarm_topic.arn]
+  alarm_actions = [aws_sns_topic.lambda_info_alarm_topic.arn]
 }
 
 
@@ -77,13 +77,27 @@ resource "aws_cloudwatch_metric_alarm" "lambda_info_alarm" {
 # ------------------------------
 # SNS Topic for Alarm Notifications
 # ------------------------------
-resource "aws_sns_topic" "lambda_alarm_topic" {
+resource "aws_sns_topic" "lambda_error_alarm_topic" {
   name = "${local.name_prefix}-error-alarm-topic"
 }
 
-# Optional: Email subscription for notifications
-resource "aws_sns_topic_subscription" "email_sub" {
-  topic_arn = aws_sns_topic.lambda_alarm_topic.arn
-  protocol  = "email"
-  endpoint  = "perseverancejbt@hotmail.com"
+resource "aws_sns_topic" "lambda_info_alarm_topic" {
+  name = "${local.name_prefix}-alert-topic"
 }
+
+# Email subscription for Error alarm notifications
+resource "aws_sns_topic_subscription" "email_sub" {
+  topic_arn = aws_sns_topic.lambda_error_alarm_topic.arn
+  protocol  = "email"
+  endpoint  = var.alert_email
+  # endpoint  = "perseverancejbt@hotmail.com"
+}
+
+# Optional: Email subscription for Info count alarm notifications
+resource "aws_sns_topic_subscription" "email_sub2" {
+  topic_arn = aws_sns_topic.lambda_info_alarm_topic.arn
+  protocol  = "email"
+   endpoint  = var.alert_email
+  # endpoint  = "perseverancejbt@hotmail.com"
+}
+
